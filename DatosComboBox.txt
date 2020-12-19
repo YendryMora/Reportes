@@ -1,0 +1,44 @@
+/*EN LA INTERFAZ: evento del combo box: cada vez que se desactiva o activa se van a cargar los datos*/
+
+private void boxTablas_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            boxTablas.ItemsSource = clsConexion1.CargarTablasBD();//CARGA EL COMBOBOX CON LAS TABLAS DE LA BD
+            boxTablas.DisplayMemberPath = "nombre";
+        }
+
+/******************************************************************************************************/
+
+//METODO:
+
+public static List<Tablas> CargarTablasBD()
+        {
+            /*OBTIENE LA LISTA DE TABLAS QUE COMPONEN LA BASE DE DATOS
+            Y LAS CARGA EN EL COMBOBOX CORRESPONDIENTE EN LA VENTANA DE FILTROS*/
+
+            var lista = new List<Tablas>();//ESTA LISTA ALMACENARÁ LOS NOMBRES DE TABLAS QUE ARROJE EL PA QUE SE EJECUTARÁ
+            using (var conex=new SqlConnection("Data Source=.;Initial Catalog=ClinicasCR-PrograIII;Integrated Security=True"))
+            {
+                conex.Open();
+                string comando = "exec PA_Tablas";//PROCEDIMIENTO DE ALMACENADO QUE OBTIENE LAS TABLAS
+                var cmd = new SqlCommand(comando, conex);
+                SqlDataReader lector = cmd.ExecuteReader();
+                while (lector.Read())//RECORRE CADA REGISTRO ARROJADO POR LA CONSULTA
+                {
+                    var tabla = new Tablas();//CREA UN NUEVO OBJETO DE LA CLASE TABLA
+                    tabla.nombre = lector[0].ToString();//LE ASIGNA A SU ATRIBUTO NOMBRE EL VALOR DE LA COLUMNA 0 DEL REGISTRO QUE SE ESTÁ RECORRIENDO
+                    lista.Add(tabla);//AÑADE A LA LISTA EL OBJETO DE TIPO TABLA CREADO
+                }
+            }
+            return lista;//RETORNA LA LISTA LLENA CON LOS NOMBRES DE TABLAS.
+        }
+
+
+/********************************************************************************************/
+
+//PA_Tablas
+
+CREATE procedure [dbo].[PA_Tablas]
+as 
+begin
+SELECT SO.NAME FROM sys.objects SO WHERE SO.TYPE = 'U'
+end
